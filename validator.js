@@ -5,7 +5,17 @@ function Validator(options) {               //options here is an object
     //How do we assign multiples for 1 input element? Since there will be override if we do so
     //Solution: with the forEach, save all the rules into an object so the fields won't be overriden
 
-    
+    function getParent(element, selector){ //using parameters element and selector because
+                                            //looking at the var errorElement with parentElement
+                                            //we see inputElement and errorSelector as materials
+
+        while (element.parentElement){
+            if(element.parentElement.matches(selector)){
+                return element.parentElement;
+            }
+            element = element.parentElement;
+        }
+    }
 
     var selectorRules = {
 
@@ -14,7 +24,8 @@ function Validator(options) {               //options here is an object
     function validate(inputElement, rule){                      //check if the input in the box is valid
        
         // how to get the form-message (under the type box)
-        var errorElement = inputElement.parentElement.querySelector(options.errorSelector)  //inputElement.parentElement gets the div tag that contains the inputElement tag
+        // var errorElement = inputElement.parentElement.querySelector(options.errorSelector)  //inputElement.parentElement gets the div tag that contains the inputElement tag
+        var errorElement = getParent(inputElement, options.formGroupSelector).querySelector(options.errorSelector)
         var errorMessage
 
         var rules = selectorRules[rule.selector]
@@ -27,11 +38,11 @@ function Validator(options) {               //options here is an object
 
             if(errorMessage){
                 errorElement.innerText = errorMessage
-                inputElement.parentElement.classList.add('invalid') 
+                getParent(inputElement, options.formGroupSelector).classList.add('invalid') 
                 
             } else {
                 errorElement.innerText = ''
-                inputElement.parentElement.classList.remove('invalid')
+                getParent(inputElement, options.formGroupSelector).classList.remove('invalid')
                 
     }
 
@@ -120,9 +131,9 @@ function Validator(options) {               //options here is an object
 
                 //When start inputting
                 inputElement.oninput = function(){  //oninput is triggered when we click on the input field
-                    var errorElement = inputElement.parentElement.querySelector(options.errorSelector)  //inputElement.parentElement gets the div tag that contains the inputElement tag
+                    var errorElement = getParent(inputElement, options.formGroupSelector).querySelector(options.errorSelector)  //inputElement.parentElement gets the div tag that contains the inputElement tag
                     errorElement.innerText = ''
-                    inputElement.parentElement.classList.remove('invalid')
+                    getParent(inputElement, options.formGroupSelector).classList.remove('invalid')
 
                 }
 

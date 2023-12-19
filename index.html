@@ -51,6 +51,7 @@
         Validator({
             form: '#form-1',
             errorSelector: '.form-message',
+            formGroupSelector: '.form-group', //set aside like this so we can reuse (in this project is to get the very parent box containing the input space and error messgae space)
             rules: [
                 Validator.isRequired(('#fullname')),
                 Validator.isRequired(('#email')),
