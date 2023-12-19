@@ -5,6 +5,8 @@ function Validator(options) {               //options here is an object
     //How do we assign multiples for 1 input element? Since there will be override if we do so
     //Solution: with the forEach, save all the rules into an object so the fields won't be overriden
 
+    
+
     var selectorRules = {
 
     }
@@ -71,7 +73,8 @@ function Validator(options) {               //options here is an object
 
                     //Here we wanna get all the values that are put in the fields and assign all to var formValues                                                                       
                     var formValues = Array.from(enableInputs).reduce(function(values, input){       //This means converting enableInputs into array type since it's node type
-                        return (values[input.name] = input.value) && values;                                                                       //so we can use reduce method to get out every of each value in enableInputs 
+                        (values[input.name] = input.value)                                          //so we can use reduce method to get out every of each value in enableInputs 
+                        return values;                                                                       
                 }, {});
 
                 options.onSubmit(formValues);
