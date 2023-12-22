@@ -28,10 +28,22 @@ function Validator(options) {               //options here is an object
         var errorElement = getParent(inputElement, options.formGroupSelector).querySelector(options.errorSelector)
         var errorMessage
 
-        var rules = selectorRules[rule.selector]
+        var rules = selectorRules[rule.selector]    //the selector is form the principles below, when they return
+
+
         for(i=0; i<rules.length; ++i){
-            errorMessage = rules[i](inputElement.value) //rules here is function so the inputElement.value is parameter
-            if (errorMessage) break;
+            switch(inputElement.type) {
+                case 'checkbox':
+                case 'radio':
+                    errorMessage = rules[i](
+                        formElement.querySelector(rule.selector + ':checked')
+                    );
+                    break;
+                default:
+                    errorMessage = rules[i](inputElement.value) //rules here is a function so the inputElement.value is parameter
+            }
+            
+            
             }
         
         
@@ -62,8 +74,10 @@ function Validator(options) {               //options here is an object
             var isFormValid = true; //set this to true, later in the forEach if anything wrong set to false
 
             options.rules.forEach(function(rule){
-                var inputElement = formElement.querySelector(rule.selector)
-                var isValid = validate(inputElement, rule)
+                var inputElement = formElement.querySelector(rule.selector);
+                
+
+                var isValid = validate(inputElement, rule);
                 if (!isValid){
                     isFormValid = false
                 }
@@ -84,7 +98,27 @@ function Validator(options) {               //options here is an object
 
                     //Here we wanna get all the values that are put in the fields and assign all to var formValues                                                                       
                     var formValues = Array.from(enableInputs).reduce(function(values, input){       //This means converting enableInputs into array type since it's node type
-                        (values[input.name] = input.value)                                          //so we can use reduce method to get out every of each value in enableInputs 
+                                                                  //so we can use reduce method to get out every of each value in enableInputs 
+                        switch(input.type) {
+                            case 'radio':
+                                values[input.name] = formElement.querySelector('input[name="' + input.name + '"]:checked').value; //so that it only gets the value of the tag that has input[name=""] that is checked
+                                break;
+                            case 'checkbox':    //because this is checkbox, it should return an array of answers that user chooses, not individual answer like radio anymore
+                                if(!input.matches(':checked')){  
+                                    values[input.name] = '';    //this is so that if user ain't check any box it still returns an empty array gender
+                                    return values;              //this step is to see if user checked that box since we only wanna get boxes that are checked. If they ain't check it the return will run and ignore the rest
+                                }
+                                if(!Array.isArray(values[input.name])){
+                                    values[input.name] = [];    //if it's not an array yet, turn it into an empty array
+                                }
+                                values[input.name].push(input.value);
+                                break;
+                            case 'file':
+                                values[input.name] = input.files;
+                                break;
+                            default:
+                                values[input.name] = input.value;
+                        }
                         return values;                                                                       
                 }, {});
 
@@ -116,13 +150,10 @@ function Validator(options) {               //options here is an object
                 selectorRules[rule.selector] = [rule.test]
             }
             
-            var inputElement = formElement.querySelector(rule.selector) //formElement because we only wanna take info from this form-1, since we might have multiple forms
+            var inputElements = formElement.querySelectorAll(rule.selector) //formElement because we only wanna take info from this form-1, since we might have multiple forms
             
-            //
-            
-            
-            if (inputElement){
-
+            //inputElements now is a node list becuase of querySelectorAll, we want an array
+            Array.from(inputElements).forEach(function(inputElement) {
                 //When blur out of input field
                 inputElement.onblur = function(){
                     validate(inputElement, rule)
@@ -136,13 +167,11 @@ function Validator(options) {               //options here is an object
                     getParent(inputElement, options.formGroupSelector).classList.remove('invalid')
 
                 }
-
-                    
-                }
-
-            }
+            });
             
-            )
+            
+
+            });
             
     
 
@@ -152,11 +181,11 @@ function Validator(options) {               //options here is an object
 // Principles of rules:
 // 1. When error: return error message
 // 2. When valid: return nothing (undefined)
-Validator.isRequired = function(selector, message   ){
+Validator.isRequired = function(selector, message){
     return {
         selector: selector,
         test: function(value){                                  //work flow: pass the value from input into the test function
-            return value.trim() ? undefined : message || 'Please type'    //Ternary operator   trim() to remove all the spaces
+            return value ? undefined : message || 'Please type'    //Ternary operator   trim() to remove all the spaces
         },
     }
 }
@@ -166,7 +195,7 @@ Validator.isEmail = function(selector, message){
         selector: selector,
         test: function(value){
             var regrex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/
-            return regrex.test(value) ? undefined : message || 'Leave an aappropriate email'
+            return regrex.test(value) ? undefined : message || 'Leave an appropriate email'
         },
     }
 }
